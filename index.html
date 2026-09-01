@@ -64,7 +64,7 @@
             <div>
               <img src="${img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${title}">
               <h2>${title} (${stock})</h2>
-              <p class="price">${price.startsWith('$') ? price : '$' + price}</p>
+              <p class="price">${price.toString().startsWith('$') ? price : '$' + price}</p>
               <p class="desc">${desc}</p>
             </div>
             <div class="buttons">
@@ -77,7 +77,7 @@
       }
     </script>
 
-    <!-- Native JSONP endpoint that circumvents CORS entirely -->
-    <script src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?gviz/tq?tqx=responseHandler:renderInventory"></script>
+    <!-- Corrected Native JSONP Endpoint -->
+    <script src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/gviz/tq?tqx=responseHandler:renderInventory"></script>
   </body>
 </html>
