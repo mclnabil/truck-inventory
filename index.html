@@ -1,62 +1,93 @@
-<script>
-  // Your exact Spreadsheet ID from Google Sheets
-  const SPREADSHEET_ID = '1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q'; 
-  
-  // MUST match the tab name at the bottom of your Google Sheet
-  const TAB_NAME = 'Vehicle Showcase Inventory V3'; 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Inventory</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #f4f4f9; margin: 0; }
+      h1 { text-align: center; color: #333; margin-bottom: 25px; }
+      .grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; margin: 0 auto; }
+      .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+      .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; background: #eee; }
+      .card h2 { font-size: 1.2rem; margin: 12px 0 6px 0; color: #2c3e50; }
+      .price { font-size: 1.25em; font-weight: bold; color: #2ecc71; margin: 6px 0 12px 0; }
+      .desc { color: #555; font-size: 0.95rem; line-height: 1.4; margin-bottom: 15px; }
+      .buttons { display: flex; gap: 10px; margin-top: auto; }
+      .btn { padding: 10px 15px; text-decoration: none; color: white; border-radius: 4px; text-align: center; flex: 1; font-size: 14px; font-weight: bold; border: none; display: inline-block; box-sizing: border-box; }
+      .btn-text { background: #3498db; }
+      .btn-text:hover { background: #2980b9; }
+      .btn-email { background: #e74c3c; }
+      .btn-email:hover { background: #c0392b; }
+      #loading { text-align: center; font-size: 1.2em; color: #666; margin-top: 40px; }
+    </style>
+  </head>
+  <body>
+    <h1>Vehicle Inventory</h1>
+    
+    <div id="loading">Loading inventory...</div>
+    <div class="grid" id="inventory-grid"></div>
 
-  const apiUrl = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${encodeURIComponent(TAB_NAME)}`;
+    <script>
+      const SPREADSHEET_ID = '1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q';
+      // Native Google Visualization API endpoint (works natively without third-party services)
+      const googleUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
 
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(vehicles => {
-      document.getElementById('loading').style.display = 'none';
-      const container = document.getElementById('inventory-grid');
-      
-      if (!vehicles || vehicles.length === 0) {
-        document.getElementById('loading').innerText = 'No inventory found.';
-        document.getElementById('loading').style.display = 'block';
-        return;
-      }
+      fetch(googleUrl)
+        .then(res => res.text())
+        .then(data => {
+          // Clean the Google GViz wrapper text to convert to raw JSON object
+          const jsonString = data.substring(47, data.length - 2);
+          const json = JSON.parse(jsonString);
+          
+          const rows = json.table.rows;
+          const container = document.getElementById('inventory-grid');
+          document.getElementById('loading').style.display = 'none';
 
-      vehicles.forEach(car => {
-        // Skip empty rows if any exist in the spreadsheet
-        if (!car['Stock Number'] && !car['Vehicle Name']) return;
+          if (!rows || rows.length === 0) {
+            document.getElementById('loading').innerText = 'No inventory found.';
+            document.getElementById('loading').style.display = 'block';
+            return;
+          }
 
-        const card = document.createElement('div');
-        card.className = 'card';
-        
-        // Grab values with fallback defaults so missing data won't break the page
-        const thumbnail = car['Thumbnail'] || 'https://via.placeholder.com/300x200?text=No+Image';
-        const title = car['Vehicle Name'] || 'Vehicle';
-        const stock = car['Stock Number'] || 'N/A';
-        const price = car['Price'] ? `$${car['Price']}` : 'Call for Price';
-        const description = car['Description'] || '';
-        const smsLink = car['SMS Link'] || '#';
-        const emailLink = car['Email Link'] || '#';
+          rows.forEach(row => {
+            const cells = row.c;
+            if (!cells) return;
 
-        card.innerHTML = `
-          <div>
-            <img src="${thumbnail}" alt="${title}">
-            <h2>${title} (${stock})</h2>
-            <p class="price">${price}</p>
-            <p>${description}</p>
-          </div>
-          <div class="buttons">
-            <a href="${smsLink}" class="btn btn-text">Text Us</a>
-            <a href="${emailLink}" class="btn btn-email">Email Us</a>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    })
-    .catch(error => {
-      console.error('Error fetching data:', error);
-      document.getElementById('loading').innerText = 'Failed to load inventory. Check spreadsheet sharing permissions.';
-    });
-</script>
+            // Extract cells matching your exact column structure:
+            // 0: Stock, 1: Name, 5: Price, 6: Description, 7: Thumbnail, 11: SMS Link, 12: Email Link
+            const stock = cells[0] ? (cells[0].v || '') : '';
+            const title = cells[1] ? (cells[1].v || '') : '';
+            const price = cells[5] ? (cells[5].v || '') : '';
+            const desc  = cells[6] ? (cells[6].v || '') : '';
+            const img   = cells[7] ? (cells[7].v || '') : '';
+            const sms   = cells[11] ? (cells[11].v || '') : '';
+            const email = cells[12] ? (cells[12].v || '') : '';
+
+            // Skip empty rows
+            if (!stock && !title) return;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <div>
+                <img src="${img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${title}">
+                <h2>${title} (${stock})</h2>
+                <p class="price">${price.startsWith('$') ? price : '$' + price}</p>
+                <p class="desc">${desc}</p>
+              </div>
+              <div class="buttons">
+                <a href="${sms || '#'}" class="btn btn-text">Text Us</a>
+                <a href="${email || '#'}" class="btn btn-email">Email Us</a>
+              </div>
+            `;
+            container.appendChild(card);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('loading').innerText = 'Failed to load inventory. Please check that the Google Sheet is Published to the Web.';
+        });
+    </script>
+  </body>
+</html>
