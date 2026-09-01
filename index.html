@@ -29,7 +29,6 @@
     <div class="grid" id="inventory-grid"></div>
 
     <script>
-      // Global callback function executed by Google's native JSONP script tag
       function renderInventory(response) {
         document.getElementById('loading').style.display = 'none';
         const container = document.getElementById('inventory-grid');
@@ -46,8 +45,6 @@
           const cells = row.c;
           if (!cells) return;
 
-          // Extract columns directly matching your sheet layout:
-          // 0: Stock, 1: Name, 5: Price, 6: Description, 7: Thumbnail, 11: SMS Link, 12: Email Link
           const stock = cells[0] ? (cells[0].v || '') : '';
           const title = cells[1] ? (cells[1].v || '') : '';
           const price = cells[5] ? (cells[5].v || '') : '';
@@ -77,7 +74,7 @@
       }
     </script>
 
-    <!-- Corrected Native JSONP Endpoint -->
-    <script src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/gviz/tq?tqx=responseHandler:renderInventory"></script>
+    <!-- Standard Spreadsheet ID Endpoint -->
+    <script src="https://docs.google.com/spreadsheets/d/1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q/gviz/tq?tqx=responseHandler:renderInventory"></script>
   </body>
 </html>
