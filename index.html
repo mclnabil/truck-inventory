@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Inventory</title>
-    <!-- Include PapaParse for safe CSV loading -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #f4f4f9; margin: 0; }
       h1 { text-align: center; color: #333; margin-bottom: 25px; }
@@ -31,59 +29,55 @@
     <div class="grid" id="inventory-grid"></div>
 
     <script>
-      // Target your published Google Sheet CSV link wrapped in a CORS proxy
-      const rawCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?output=csv';
-      const proxyCsvUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCsvUrl);
-
-      Papa.parse(proxyCsvUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          document.getElementById('loading').style.display = 'none';
-          const container = document.getElementById('inventory-grid');
-          const data = results.data;
-
-          if (!data || data.length === 0) {
-            document.getElementById('loading').innerText = 'No inventory found.';
-            document.getElementById('loading').style.display = 'block';
-            return;
-          }
-
-          data.forEach(row => {
-            // Read columns directly by header name
-            const stock = row['Stock Number'] || '';
-            const title = row['Vehicle Name'] || '';
-            const price = row['Price'] || '';
-            const desc  = row['Description'] || '';
-            const img   = row['Thumbnail'] || '';
-            const sms   = row['SMS Link'] || '#';
-            const email = row['Email Link'] || '#';
-
-            if (!stock && !title) return;
-
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-              <div>
-                <img src="${img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${title}">
-                <h2>${title} (${stock})</h2>
-                <p class="price">${price.startsWith('$') ? price : '$' + price}</p>
-                <p class="desc">${desc}</p>
-              </div>
-              <div class="buttons">
-                <a href="${sms}" class="btn btn-text">Text Us</a>
-                <a href="${email}" class="btn btn-email">Email Us</a>
-              </div>
-            `;
-            container.appendChild(card);
-          });
-        },
-        error: function(err) {
-          console.error(err);
-          document.getElementById('loading').innerText = 'Failed to load inventory data.';
+      // Global callback function executed by Google's native JSONP script tag
+      function renderInventory(response) {
+        document.getElementById('loading').style.display = 'none';
+        const container = document.getElementById('inventory-grid');
+        
+        if (!response || !response.table || !response.table.rows) {
+          document.getElementById('loading').innerText = 'No inventory found.';
+          document.getElementById('loading').style.display = 'block';
+          return;
         }
-      });
+
+        const rows = response.table.rows;
+
+        rows.forEach(row => {
+          const cells = row.c;
+          if (!cells) return;
+
+          // Extract columns directly matching your sheet layout:
+          // 0: Stock, 1: Name, 5: Price, 6: Description, 7: Thumbnail, 11: SMS Link, 12: Email Link
+          const stock = cells[0] ? (cells[0].v || '') : '';
+          const title = cells[1] ? (cells[1].v || '') : '';
+          const price = cells[5] ? (cells[5].v || '') : '';
+          const desc  = cells[6] ? (cells[6].v || '') : '';
+          const img   = cells[7] ? (cells[7].v || '') : '';
+          const sms   = cells[11] ? (cells[11].v || '') : '';
+          const email = cells[12] ? (cells[12].v || '') : '';
+
+          if (!stock && !title) return;
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div>
+              <img src="${img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${title}">
+              <h2>${title} (${stock})</h2>
+              <p class="price">${price.startsWith('$') ? price : '$' + price}</p>
+              <p class="desc">${desc}</p>
+            </div>
+            <div class="buttons">
+              <a href="${sms || '#'}" class="btn btn-text">Text Us</a>
+              <a href="${email || '#'}" class="btn btn-email">Email Us</a>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
     </script>
+
+    <!-- Native JSONP endpoint that circumvents CORS entirely -->
+    <script src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?gviz/tq?tqx=responseHandler:renderInventory"></script>
   </body>
 </html>
