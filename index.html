@@ -29,43 +29,60 @@
     <div class="grid" id="inventory-grid"></div>
 
     <script>
-      const SPREADSHEET_ID = '1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q';
-      // Native Google Visualization API endpoint (works natively without third-party services)
-      const googleUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
+      // Your exact published Google Sheet CSV endpoint
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?output=csv';
 
-      fetch(googleUrl)
+      // Helper function to handle CSV parsing with quotes and commas safely
+      function parseCSV(text) {
+        let p = '', c = '', r = [];
+        let q = false;
+        let row = [''];
+        for (let i = 0; i < text.length; i++) {
+          c = text[i];
+          p = text[i - 1];
+          if (c === '"') {
+            if (q && p === '"') { row[row.length - 1] += '"'; }
+            q = !q;
+          } else if (c === ',' && !q) {
+            row.push('');
+          } else if ((c === '\r' || c === '\n') && !q) {
+            if (p !== '\r') { r.push(row); row = ['']; }
+          } else {
+            row[row.length - 1] += c;
+          }
+        }
+        if (row.length > 1 || row[0] !== '') { r.push(row); }
+        return r;
+      }
+
+      fetch(csvUrl)
         .then(res => res.text())
-        .then(data => {
-          // Clean the Google GViz wrapper text to convert to raw JSON object
-          const jsonString = data.substring(47, data.length - 2);
-          const json = JSON.parse(jsonString);
-          
-          const rows = json.table.rows;
+        .then(csvText => {
+          const data = parseCSV(csvText);
           const container = document.getElementById('inventory-grid');
           document.getElementById('loading').style.display = 'none';
 
-          if (!rows || rows.length === 0) {
+          if (!data || data.length <= 1) {
             document.getElementById('loading').innerText = 'No inventory found.';
             document.getElementById('loading').style.display = 'block';
             return;
           }
 
-          rows.forEach(row => {
-            const cells = row.c;
-            if (!cells) return;
-
-            // Extract cells matching your exact column structure:
+          // Row 0 contains column headers; data starts at index 1
+          for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            
+            // Extract by exact column indexes:
             // 0: Stock, 1: Name, 5: Price, 6: Description, 7: Thumbnail, 11: SMS Link, 12: Email Link
-            const stock = cells[0] ? (cells[0].v || '') : '';
-            const title = cells[1] ? (cells[1].v || '') : '';
-            const price = cells[5] ? (cells[5].v || '') : '';
-            const desc  = cells[6] ? (cells[6].v || '') : '';
-            const img   = cells[7] ? (cells[7].v || '') : '';
-            const sms   = cells[11] ? (cells[11].v || '') : '';
-            const email = cells[12] ? (cells[12].v || '') : '';
+            const stock = row[0] || '';
+            const title = row[1] || '';
+            const price = row[5] || '';
+            const desc  = row[6] || '';
+            const img   = row[7] || '';
+            const sms   = row[11] || '';
+            const email = row[12] || '';
 
-            // Skip empty rows
-            if (!stock && !title) return;
+            if (!stock && !title) continue;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -82,11 +99,11 @@
               </div>
             `;
             container.appendChild(card);
-          });
+          }
         })
         .catch(err => {
           console.error(err);
-          document.getElementById('loading').innerText = 'Failed to load inventory. Please check that the Google Sheet is Published to the Web.';
+          document.getElementById('loading').innerText = 'Failed to load inventory from published link.';
         });
     </script>
   </body>
