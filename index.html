@@ -19,62 +19,98 @@
       .btn-text:hover { background: #2980b9; }
       .btn-email { background: #e74c3c; }
       .btn-email:hover { background: #c0392b; }
-      #loading { text-align: center; font-size: 1.2em; color: #666; margin-top: 40px; }
     </style>
   </head>
   <body>
     <h1>Vehicle Inventory</h1>
     
-    <div id="loading">Loading inventory...</div>
     <div class="grid" id="inventory-grid"></div>
 
     <script>
-      function renderInventory(response) {
-        document.getElementById('loading').style.display = 'none';
-        const container = document.getElementById('inventory-grid');
-        
-        if (!response || !response.table || !response.table.rows) {
-          document.getElementById('loading').innerText = 'No inventory found.';
-          document.getElementById('loading').style.display = 'block';
-          return;
+      const inventory = [
+        {
+          "Stock Number": 1023,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.25 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1CFBw-zGrskGJi9UGDzSx5HoR8HpMGLG6",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201023",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1023"
+        },
+        {
+          "Stock Number": 1041,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201041",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1041"
+        },
+        {
+          "Stock Number": 1056,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1fi8CpUHuoBh16rcSYcNTTbVjhAit6WSy",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201056",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1056"
+        },
+        {
+          "Stock Number": 1069,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1GKSSPBjpgw0RmUvV6yhQScGoRqwjG4Mr",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201069",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1069"
+        },
+        {
+          "Stock Number": 1074,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201074",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1074"
+        },
+        {
+          "Stock Number": 1088,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201088",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1088"
+        },
+        {
+          "Stock Number": 1095,
+          "Vehicle Name": "2020 Freightliner Cascadia",
+          "Price": "$599 weekly",
+          "Description": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
+          "Thumbnail": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
+          "SMS Link": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201095",
+          "Email Link": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1095"
         }
+      ];
 
-        const rows = response.table.rows;
-
-        rows.forEach(row => {
-          const cells = row.c;
-          if (!cells) return;
-
-          const stock = cells[0] ? (cells[0].v || '') : '';
-          const title = cells[1] ? (cells[1].v || '') : '';
-          const price = cells[5] ? (cells[5].v || '') : '';
-          const desc  = cells[6] ? (cells[6].v || '') : '';
-          const img   = cells[7] ? (cells[7].v || '') : '';
-          const sms   = cells[11] ? (cells[11].v || '') : '';
-          const email = cells[12] ? (cells[12].v || '') : '';
-
-          if (!stock && !title) return;
-
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div>
-              <img src="${img || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${title}">
-              <h2>${title} (${stock})</h2>
-              <p class="price">${price.toString().startsWith('$') ? price : '$' + price}</p>
-              <p class="desc">${desc}</p>
-            </div>
-            <div class="buttons">
-              <a href="${sms || '#'}" class="btn btn-text">Text Us</a>
-              <a href="${email || '#'}" class="btn btn-email">Email Us</a>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-      }
+      const container = document.getElementById('inventory-grid');
+      inventory.forEach(car => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div>
+            <img src="${car.Thumbnail}" alt="${car['Vehicle Name']}">
+            <h2>${car['Vehicle Name']} (${car['Stock Number']})</h2>
+            <p class="price">${car.Price}</p>
+            <p class="desc">${car.Description}</p>
+          </div>
+          <div class="buttons">
+            <a href="${car['SMS Link']}" class="btn btn-text">Text Us</a>
+            <a href="${car['Email Link']}" class="btn btn-email">Email Us</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
     </script>
-
-    <!-- Standard Spreadsheet ID Endpoint -->
-    <script src="https://docs.google.com/spreadsheets/d/1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q/gviz/tq?tqx=responseHandler:renderInventory"></script>
   </body>
 </html>
