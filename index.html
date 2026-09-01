@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Inventory</title>
+    <!-- Include PapaParse for safe CSV loading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #f4f4f9; margin: 0; }
       h1 { text-align: center; color: #333; margin-bottom: 25px; }
@@ -29,60 +31,36 @@
     <div class="grid" id="inventory-grid"></div>
 
     <script>
-      // Your exact published Google Sheet CSV endpoint
-      const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?output=csv';
+      // Target your published Google Sheet CSV link wrapped in a CORS proxy
+      const rawCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT/pub?output=csv';
+      const proxyCsvUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCsvUrl);
 
-      // Helper function to handle CSV parsing with quotes and commas safely
-      function parseCSV(text) {
-        let p = '', c = '', r = [];
-        let q = false;
-        let row = [''];
-        for (let i = 0; i < text.length; i++) {
-          c = text[i];
-          p = text[i - 1];
-          if (c === '"') {
-            if (q && p === '"') { row[row.length - 1] += '"'; }
-            q = !q;
-          } else if (c === ',' && !q) {
-            row.push('');
-          } else if ((c === '\r' || c === '\n') && !q) {
-            if (p !== '\r') { r.push(row); row = ['']; }
-          } else {
-            row[row.length - 1] += c;
-          }
-        }
-        if (row.length > 1 || row[0] !== '') { r.push(row); }
-        return r;
-      }
-
-      fetch(csvUrl)
-        .then(res => res.text())
-        .then(csvText => {
-          const data = parseCSV(csvText);
-          const container = document.getElementById('inventory-grid');
+      Papa.parse(proxyCsvUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
           document.getElementById('loading').style.display = 'none';
+          const container = document.getElementById('inventory-grid');
+          const data = results.data;
 
-          if (!data || data.length <= 1) {
+          if (!data || data.length === 0) {
             document.getElementById('loading').innerText = 'No inventory found.';
             document.getElementById('loading').style.display = 'block';
             return;
           }
 
-          // Row 0 contains column headers; data starts at index 1
-          for (let i = 1; i < data.length; i++) {
-            const row = data[i];
-            
-            // Extract by exact column indexes:
-            // 0: Stock, 1: Name, 5: Price, 6: Description, 7: Thumbnail, 11: SMS Link, 12: Email Link
-            const stock = row[0] || '';
-            const title = row[1] || '';
-            const price = row[5] || '';
-            const desc  = row[6] || '';
-            const img   = row[7] || '';
-            const sms   = row[11] || '';
-            const email = row[12] || '';
+          data.forEach(row => {
+            // Read columns directly by header name
+            const stock = row['Stock Number'] || '';
+            const title = row['Vehicle Name'] || '';
+            const price = row['Price'] || '';
+            const desc  = row['Description'] || '';
+            const img   = row['Thumbnail'] || '';
+            const sms   = row['SMS Link'] || '#';
+            const email = row['Email Link'] || '#';
 
-            if (!stock && !title) continue;
+            if (!stock && !title) return;
 
             const card = document.createElement('div');
             card.className = 'card';
@@ -94,17 +72,18 @@
                 <p class="desc">${desc}</p>
               </div>
               <div class="buttons">
-                <a href="${sms || '#'}" class="btn btn-text">Text Us</a>
-                <a href="${email || '#'}" class="btn btn-email">Email Us</a>
+                <a href="${sms}" class="btn btn-text">Text Us</a>
+                <a href="${email}" class="btn btn-email">Email Us</a>
               </div>
             `;
             container.appendChild(card);
-          }
-        })
-        .catch(err => {
+          });
+        },
+        error: function(err) {
           console.error(err);
-          document.getElementById('loading').innerText = 'Failed to load inventory from published link.';
-        });
+          document.getElementById('loading').innerText = 'Failed to load inventory data.';
+        }
+      });
     </script>
   </body>
 </html>
