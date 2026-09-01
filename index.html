@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+      .grid { display: flex; flex-wrap: wrap; gap: 20px; }
+      .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 300px; }
+      .card img { width: 100%; height: auto; border-radius: 4px; }
+      .price { font-size: 1.2em; font-weight: bold; color: #2ecc71; }
+      .buttons { margin-top: 15px; display: flex; gap: 10px; }
+      .btn { padding: 10px 15px; text-decoration: none; color: white; border-radius: 4px; text-align: center; flex: 1; border: none; font-size: 14px; cursor: pointer; display: inline-block; }
+      .btn-text { background: #3498db; }
+      .btn-email { background: #e74c3c; }
+    </style>
+  </head>
+  <body>
+    <h1>Vehicle Inventory</h1>
+    
+    <div class="grid">
+      <? for (var i = 1; i < vehicles.length; i++) { ?>
+        
+        <div class="card">
+          <!-- Column H (Index 7) is Thumbnail -->
+          <img src="<?= vehicles[i][7] ?>" alt="Vehicle Image">
+          
+          <!-- Column B (Index 1) is Vehicle Name, Column A (Index 0) is Stock Number -->
+          <h2><?= vehicles[i][1] ?> (<?= vehicles[i][0] ?>)</h2>
+          
+          <!-- Column F (Index 5) is Price -->
+          <p class="price">$<?= vehicles[i][5] ?></p>
+          
+          <!-- Column G (Index 6) is Description -->
+          <p><?= vehicles[i][6] ?></p>
+          
+          <div class="buttons">
+            <!-- Column L (Index 11) is SMS Link, Column M (Index 12) is Email Link -->
+            <a href="<?= vehicles[i][11] ?>" target="_top" class="btn btn-text">Text Us</a>
+            <a href="<?= vehicles[i][12] ?>" target="_top" class="btn btn-email">Email Us</a>
+          </div>
+        </div>
+        
+      <? } ?>
+    </div>
+    
+  </body>
+</html>
