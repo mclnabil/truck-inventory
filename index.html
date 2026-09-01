@@ -1,64 +1,62 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Inventory</title>
-    <style>
-      body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-      h1 { text-align: center; color: #333; }
-      .grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-      .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; justify-content: space-between; }
-      .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; }
-      .price { font-size: 1.2em; font-weight: bold; color: #2ecc71; margin: 10px 0; }
-      .buttons { margin-top: 15px; display: flex; gap: 10px; }
-      .btn { padding: 10px 15px; text-decoration: none; color: white; border-radius: 4px; text-align: center; flex: 1; font-size: 14px; font-weight: bold; }
-      .btn-text { background: #3498db; }
-      .btn-email { background: #e74c3c; }
-      #loading { text-align: center; font-size: 1.2em; color: #666; }
-    </style>
-  </head>
-  <body>
-    <h1>Vehicle Inventory</h1>
-    
-    <div id="loading">Loading inventory...</div>
-    <div class="grid" id="inventory-grid"></div>
+<script>
+  // Your exact Spreadsheet ID from Google Sheets
+  const SPREADSHEET_ID = '1EIsgD4q8X56IAn50L9GkI22u37fI4Q3xZJ8vS-v0m-Q'; 
+  
+  // MUST match the tab name at the bottom of your Google Sheet
+  const TAB_NAME = 'Vehicle Showcase Inventory V3'; 
 
-    <script>
-      // REPLACE THIS WITH YOUR ACTUAL SPREADSHEET ID
-      const SPREADSHEET_ID = '2PACX-1vSJx9N5KRKNFufYIpBiKQNmZ99m3TOkx-87oaPM4UYZxhELzYUSTKMJY8_3h5HxeJPMMNUGcBpyzkIT'; 
-      const TAB_NAME = 'Vehicle Showcase Inventory V3'; // Must match your exact tab name
+  const apiUrl = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${encodeURIComponent(TAB_NAME)}`;
 
-      const apiUrl = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${encodeURIComponent(TAB_NAME)}`;
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(vehicles => {
+      document.getElementById('loading').style.display = 'none';
+      const container = document.getElementById('inventory-grid');
+      
+      if (!vehicles || vehicles.length === 0) {
+        document.getElementById('loading').innerText = 'No inventory found.';
+        document.getElementById('loading').style.display = 'block';
+        return;
+      }
 
-      fetch(apiUrl)
-        .then(response => response.json())
-        .then(vehicles => {
-          document.getElementById('loading').style.display = 'none';
-          const container = document.getElementById('inventory-grid');
-          
-          vehicles.forEach(car => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            
-            card.innerHTML = `
-              <div>
-                <img src="${car['Thumbnail'] || ''}" alt="Vehicle Image">
-                <h2>${car['Vehicle Name'] || ''} (${car['Stock Number'] || ''})</h2>
-                <p class="price">$${car['Price'] || ''}</p>
-                <p>${car['Description'] || ''}</p>
-              </div>
-              <div class="buttons">
-                <a href="${car['SMS Link']}" class="btn btn-text">Text Us</a>
-                <a href="${car['Email Link']}" class="btn btn-email">Email Us</a>
-              </div>
-            `;
-            container.appendChild(card);
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-          document.getElementById('loading').innerText = 'Failed to load inventory.';
-        });
-    </script>
-  </body>
-</html>
+      vehicles.forEach(car => {
+        // Skip empty rows if any exist in the spreadsheet
+        if (!car['Stock Number'] && !car['Vehicle Name']) return;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        // Grab values with fallback defaults so missing data won't break the page
+        const thumbnail = car['Thumbnail'] || 'https://via.placeholder.com/300x200?text=No+Image';
+        const title = car['Vehicle Name'] || 'Vehicle';
+        const stock = car['Stock Number'] || 'N/A';
+        const price = car['Price'] ? `$${car['Price']}` : 'Call for Price';
+        const description = car['Description'] || '';
+        const smsLink = car['SMS Link'] || '#';
+        const emailLink = car['Email Link'] || '#';
+
+        card.innerHTML = `
+          <div>
+            <img src="${thumbnail}" alt="${title}">
+            <h2>${title} (${stock})</h2>
+            <p class="price">${price}</p>
+            <p>${description}</p>
+          </div>
+          <div class="buttons">
+            <a href="${smsLink}" class="btn btn-text">Text Us</a>
+            <a href="${emailLink}" class="btn btn-email">Email Us</a>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+      document.getElementById('loading').innerText = 'Failed to load inventory. Check spreadsheet sharing permissions.';
+    });
+</script>
