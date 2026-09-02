@@ -80,7 +80,6 @@
       
       let masterInventory = [];
 
-      // Convert standard Google Drive viewing links into direct image thumbnail URLs
       function formatImageUrl(url) {
         if (!url || typeof url !== 'string') return '';
         const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -91,7 +90,7 @@
       }
 
       function fetchInventory() {
-        fetch(webAppUrl)
+        fetch(webAppUrl, { redirect: 'follow' })
           .then(res => res.json())
           .then(data => {
             const statusMsg = document.getElementById('status-message');
@@ -101,7 +100,6 @@
               return;
             }
 
-            // Map and format rows dynamically from spreadsheet column headers
             masterInventory = data.map(row => {
               const stock = row['Stock Number'] || row['Stock'] || '';
               const name  = row['Vehicle Name'] || row['Name'] || '';
@@ -118,8 +116,7 @@
                 gallery = [thumb];
               }
 
-              // Use custom SMS link or build a dynamic fallback
-              const phone = row['Contact Phone'] ? row['Contact Phone'].replace(/[^0-9]/g, '') : '18654634097';
+              const phone = row['Contact Phone'] ? row['Contact Phone'].toString().replace(/[^0-9]/g, '') : '18654634097';
               const sms = row['SMS Link'] || `sms:+${phone}?body=I%20am%20interested%20in%20stock%20number%20${stock}`;
               
               const emailAddr = row['Contact Email'] || 'recruiting@marblecitylogistics.com';
@@ -188,7 +185,6 @@
         renderCards(filtered);
       }
 
-      // Modal Gallery Logic
       let currentGallery = [];
       let currentIndex = 0;
 
@@ -221,7 +217,6 @@
         document.getElementById('gallery-modal').style.display = 'none';
       }
 
-      // Load live inventory on page load
       fetchInventory();
     </script>
   </body>
