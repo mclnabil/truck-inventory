@@ -39,7 +39,7 @@
       .btn-email { background: #e74c3c; }
       .btn-email:hover { background: #c0392b; }
       
-      #no-results { text-align: center; font-size: 1.2em; color: #777; width: 100%; display: none; margin-top: 20px; }
+      #status-message { text-align: center; font-size: 1.2em; color: #666; width: 100%; margin-top: 30px; }
 
       /* Modal Styling */
       .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
@@ -61,8 +61,8 @@
       <input type="text" id="search-input" class="search-input" placeholder="Search by stock #, year, mileage, make, or details..." oninput="filterInventory()">
     </div>
 
+    <div id="status-message">Loading live inventory from Google Sheets...</div>
     <div class="grid" id="inventory-grid"></div>
-    <div id="no-results">No vehicles match your search.</div>
 
     <!-- Image Gallery Modal -->
     <div id="gallery-modal" class="modal" onclick="closeModal(event)">
@@ -76,116 +76,78 @@
     </div>
 
     <script>
-      const inventory = [
-        {
-          "stock": 1023,
-          "name": "2020 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "685k Miles",
-          "desc": "DOT ready. Very clean. Super quick 1.25 year term. NO BALLOON PAYMENT!!",
-          "thumb": "https://lh3.googleusercontent.com/d/1CFBw-zGrskGJi9UGDzSx5HoR8HpMGLG6",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1CFBw-zGrskGJi9UGDzSx5HoR8HpMGLG6",
-            "https://lh3.googleusercontent.com/d/1CVkhIO64l77yLG-DZOfdLpkjf1Xben5E",
-            "https://lh3.googleusercontent.com/d/1Q9qGgi_MZ9UWDqZYJuE3siL3g7nVoNDn"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201023",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1023"
-        },
-        {
-          "stock": 1041,
-          "name": "2020 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "602k Miles",
-          "desc": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!",
-          "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201041",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1041"
-        },
-        {
-          "stock": 1056,
-          "name": "2022 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "463k Miles",
-          "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 12/2027. DOT ready. 2.5 year term. NO BALLOON PAYMENT!",
-          "thumb": "https://lh3.googleusercontent.com/d/1fi8CpUHuoBh16rcSYcNTTbVjhAit6WSy",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1fi8CpUHuoBh16rcSYcNTTbVjhAit6WSy",
-            "https://lh3.googleusercontent.com/d/16Lm8pUEgTeC1EJLp7CqURHo1zGc0MXGw",
-            "https://lh3.googleusercontent.com/d/1uyTkveiH68PnKz83dtBZ5cBWiiAHl7lf"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201056",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1056"
-        },
-        {
-          "stock": 1069,
-          "name": "2024 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "511k Miles",
-          "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 04/2028. DOT ready. 2.5 year term. NO BALLOON PAYMENT!",
-          "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201069",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1069"
-        },
-        {
-          "stock": 1074,
-          "name": "2024 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "517k Miles",
-          "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 05/2028. DOT ready. 2.5 year term. NO BALLOON PAYMENT!",
-          "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201074",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1074"
-        },
-        {
-          "stock": 1082,
-          "name": "2023 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "449k Miles",
-          "desc": "APU! Remaining Freightliner warranty on powertrain and aftertreatment until 06/2029. DOT ready. 2.5 year term. NO BALLOON PAYMENT!",
-          "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201082",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1082"
-        },
-        {
-          "stock": 1025,
-          "name": "2020 Freightliner Cascadia",
-          "price": "$599 weekly",
-          "miles": "711k Miles",
-          "desc": "DOT ready. Very clean. Super quick 39 week term. NO BALLOON PAYMENT!!",
-          "thumb": "https://lh3.googleusercontent.com/d/1bdB13VsKcAUuh_nK40gCdhi1cSAhufYU",
-          "gallery": [
-            "https://lh3.googleusercontent.com/d/1bdB13VsKcAUuh_nK40gCdhi1cSAhufYU",
-            "https://lh3.googleusercontent.com/d/1GKSSPBjpgw0RmUvV6yhQScGoRqwjG4Mr",
-            "https://lh3.googleusercontent.com/d/1WJ0lj8CVrmfnSvJ0Gw2AZVc0Wyhuoj6o"
-          ],
-          "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201025",
-          "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1025"
+      const webAppUrl = 'https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec';
+      
+      let masterInventory = [];
+
+      // Convert standard Google Drive viewing links into direct image thumbnail URLs
+      function formatImageUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+          return `https://lh3.googleusercontent.com/d/${match[1]}`;
         }
-      ];
+        return url.trim();
+      }
+
+      function fetchInventory() {
+        fetch(webAppUrl)
+          .then(res => res.json())
+          .then(data => {
+            const statusMsg = document.getElementById('status-message');
+            
+            if (!data || data.length === 0) {
+              statusMsg.innerText = 'No inventory found.';
+              return;
+            }
+
+            // Map and format rows dynamically from spreadsheet column headers
+            masterInventory = data.map(row => {
+              const stock = row['Stock Number'] || row['Stock'] || '';
+              const name  = row['Vehicle Name'] || row['Name'] || '';
+              const price = row['Price'] || '';
+              const miles = row['Miles'] || row['Mileage'] || '';
+              const desc  = row['Description'] || '';
+              
+              const thumbRaw = row['Thumbnail'] || '';
+              const thumb = formatImageUrl(thumbRaw);
+
+              const galleryRaw = row['Gallery'] || '';
+              let gallery = galleryRaw ? galleryRaw.split(',').map(u => formatImageUrl(u)).filter(u => u) : [];
+              if (gallery.length === 0 && thumb) {
+                gallery = [thumb];
+              }
+
+              // Use custom SMS link or build a dynamic fallback
+              const phone = row['Contact Phone'] ? row['Contact Phone'].replace(/[^0-9]/g, '') : '18654634097';
+              const sms = row['SMS Link'] || `sms:+${phone}?body=I%20am%20interested%20in%20stock%20number%20${stock}`;
+              
+              const emailAddr = row['Contact Email'] || 'recruiting@marblecitylogistics.com';
+              const email = row['Email Link'] || `mailto:${emailAddr}?subject=Inquiry about stock number STK-${stock}`;
+
+              return { stock, name, price, miles, desc, thumb, gallery, sms, email };
+            }).filter(car => car.stock || car.name);
+
+            statusMsg.style.display = 'none';
+            renderCards(masterInventory);
+          })
+          .catch(err => {
+            console.error('Error fetching inventory:', err);
+            document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
+          });
+      }
 
       function renderCards(items) {
         const container = document.getElementById('inventory-grid');
-        const noResults = document.getElementById('no-results');
+        const statusMsg = document.getElementById('status-message');
         container.innerHTML = '';
 
         if (items.length === 0) {
-          noResults.style.display = 'block';
+          statusMsg.innerText = 'No vehicles match your search.';
+          statusMsg.style.display = 'block';
           return;
         }
-        noResults.style.display = 'none';
+        statusMsg.style.display = 'none';
 
         items.forEach((car, index) => {
           const card = document.createElement('div');
@@ -197,12 +159,12 @@
           card.innerHTML = `
             <div>
               <div class="img-wrapper" onclick="openGallery(${index})">
-                <img src="${car.thumb}" alt="${car.name}">
+                <img src="${car.thumb || 'https://via.placeholder.com/300x240?text=No+Image'}" alt="${car.name}">
                 ${badgeHtml}
               </div>
               <h2>${car.name} (${car.stock})</h2>
-              <p class="price">${car.price}</p>
-              <p class="miles">🛣️ ${car.miles}</p>
+              <p class="price">${car.price.toString().startsWith('$') ? car.price : '$' + car.price}</p>
+              ${car.miles ? `<p class="miles">🛣️ ${car.miles}</p>` : ''}
               <p class="desc">${car.desc}</p>
             </div>
             <div class="buttons">
@@ -216,21 +178,22 @@
 
       function filterInventory() {
         const query = document.getElementById('search-input').value.toLowerCase();
-        const filtered = inventory.filter(car => {
-          return car.name.toLowerCase().includes(query) ||
-                 car.stock.toString().includes(query) ||
-                 (car.miles && car.miles.toLowerCase().includes(query)) ||
-                 car.desc.toLowerCase().includes(query) ||
-                 car.price.toLowerCase().includes(query);
+        const filtered = masterInventory.filter(car => {
+          return car.name.toString().toLowerCase().includes(query) ||
+                 car.stock.toString().toLowerCase().includes(query) ||
+                 (car.miles && car.miles.toString().toLowerCase().includes(query)) ||
+                 car.desc.toString().toLowerCase().includes(query) ||
+                 car.price.toString().toLowerCase().includes(query);
         });
         renderCards(filtered);
       }
 
+      // Modal Gallery Logic
       let currentGallery = [];
       let currentIndex = 0;
 
       function openGallery(carIndex) {
-        currentGallery = inventory[carIndex].gallery || [inventory[carIndex].thumb];
+        currentGallery = masterInventory[carIndex].gallery || [masterInventory[carIndex].thumb];
         currentIndex = 0;
         updateModal();
         document.getElementById('gallery-modal').style.display = 'flex';
@@ -258,7 +221,8 @@
         document.getElementById('gallery-modal').style.display = 'none';
       }
 
-      renderCards(inventory);
+      // Load live inventory on page load
+      fetchInventory();
     </script>
   </body>
 </html>
