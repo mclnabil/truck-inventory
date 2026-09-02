@@ -76,7 +76,7 @@
     </div>
 
     <script>
-      const webAppUrl = 'https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec';
+      const webAppUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec');
       
       let masterInventory = [];
 
@@ -90,7 +90,7 @@
       }
 
       function fetchInventory() {
-        fetch(webAppUrl, { redirect: 'follow' })
+        fetch(webAppUrl)
           .then(res => res.json())
           .then(data => {
             const statusMsg = document.getElementById('status-message');
