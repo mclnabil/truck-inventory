@@ -125,13 +125,17 @@
         renderCards(masterInventory);
       }
 
+      // Dynamically inject script tag with iOS cache-busting and mobile compatibility
       function loadLiveInventory() {
         const script = document.createElement('script');
-        script.src = webAppUrl + '?callback=handleInventoryData';
+        script.src = webAppUrl + '?callback=handleInventoryData&_t=' + Date.now();
+        script.async = true;
+        
         script.onerror = function() {
           document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
         };
-        document.body.appendChild(script);
+        
+        document.head.appendChild(script);
       }
 
       function renderCards(items) {
