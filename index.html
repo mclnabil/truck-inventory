@@ -76,8 +76,7 @@
     </div>
 
     <script>
-      const webAppUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec');
-      
+      const webAppUrl = 'https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec';
       let masterInventory = [];
 
       function formatImageUrl(url) {
@@ -89,49 +88,50 @@
         return url.trim();
       }
 
-      function fetchInventory() {
-        fetch(webAppUrl)
-          .then(res => res.json())
-          .then(data => {
-            const statusMsg = document.getElementById('status-message');
-            
-            if (!data || data.length === 0) {
-              statusMsg.innerText = 'No inventory found.';
-              return;
-            }
+      function handleInventoryData(data) {
+        const statusMsg = document.getElementById('status-message');
+        
+        if (!data || data.length === 0) {
+          statusMsg.innerText = 'No inventory found in spreadsheet.';
+          return;
+        }
 
-            masterInventory = data.map(row => {
-              const stock = row['Stock Number'] || row['Stock'] || '';
-              const name  = row['Vehicle Name'] || row['Name'] || '';
-              const price = row['Price'] || '';
-              const miles = row['Miles'] || row['Mileage'] || '';
-              const desc  = row['Description'] || '';
-              
-              const thumbRaw = row['Thumbnail'] || '';
-              const thumb = formatImageUrl(thumbRaw);
+        masterInventory = data.map(row => {
+          const stock = row['Stock Number'] || row['Stock'] || '';
+          const name  = row['Vehicle Name'] || row['Name'] || '';
+          const price = row['Price'] || '';
+          const miles = row['Miles'] || row['Mileage'] || '';
+          const desc  = row['Description'] || '';
+          
+          const thumbRaw = row['Thumbnail'] || '';
+          const thumb = formatImageUrl(thumbRaw);
 
-              const galleryRaw = row['Gallery'] || '';
-              let gallery = galleryRaw ? galleryRaw.split(',').map(u => formatImageUrl(u)).filter(u => u) : [];
-              if (gallery.length === 0 && thumb) {
-                gallery = [thumb];
-              }
+          const galleryRaw = row['Gallery'] || '';
+          let gallery = galleryRaw ? galleryRaw.split(',').map(u => formatImageUrl(u)).filter(u => u) : [];
+          if (gallery.length === 0 && thumb) {
+            gallery = [thumb];
+          }
 
-              const phone = row['Contact Phone'] ? row['Contact Phone'].toString().replace(/[^0-9]/g, '') : '18654634097';
-              const sms = row['SMS Link'] || `sms:+${phone}?body=I%20am%20interested%20in%20stock%20number%20${stock}`;
-              
-              const emailAddr = row['Contact Email'] || 'recruiting@marblecitylogistics.com';
-              const email = row['Email Link'] || `mailto:${emailAddr}?subject=Inquiry about stock number STK-${stock}`;
+          const phone = row['Contact Phone'] ? row['Contact Phone'].toString().replace(/[^0-9]/g, '') : '18654634097';
+          const sms = row['SMS Link'] || `sms:+${phone}?body=I%20am%20interested%20in%20stock%20number%20${stock}`;
+          
+          const emailAddr = row['Contact Email'] || 'recruiting@marblecitylogistics.com';
+          const email = row['Email Link'] || `mailto:${emailAddr}?subject=Inquiry about stock number STK-${stock}`;
 
-              return { stock, name, price, miles, desc, thumb, gallery, sms, email };
-            }).filter(car => car.stock || car.name);
+          return { stock, name, price, miles, desc, thumb, gallery, sms, email };
+        }).filter(car => car.stock || car.name);
 
-            statusMsg.style.display = 'none';
-            renderCards(masterInventory);
-          })
-          .catch(err => {
-            console.error('Error fetching inventory:', err);
-            document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
-          });
+        statusMsg.style.display = 'none';
+        renderCards(masterInventory);
+      }
+
+      function loadLiveInventory() {
+        const script = document.createElement('script');
+        script.src = webAppUrl + '?callback=handleInventoryData';
+        script.onerror = function() {
+          document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
+        };
+        document.body.appendChild(script);
       }
 
       function renderCards(items) {
@@ -217,7 +217,7 @@
         document.getElementById('gallery-modal').style.display = 'none';
       }
 
-      fetchInventory();
+      loadLiveInventory();
     </script>
   </body>
 </html>
