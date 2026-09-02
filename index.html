@@ -61,7 +61,7 @@
       <input type="text" id="search-input" class="search-input" placeholder="Search by stock #, year, mileage, make, or details..." oninput="filterInventory()">
     </div>
 
-    <div id="status-message">Loading live inventory from Google Sheets...</div>
+    <div id="status-message">Loading inventory...</div>
     <div class="grid" id="inventory-grid"></div>
 
     <!-- Image Gallery Modal -->
@@ -78,6 +78,18 @@
     <script>
       const webAppUrl = 'https://script.google.com/macros/s/AKfycbwM4OA7h8bQNDHsNlavqAeF_V1jPKtsLjc7z0eTI_LelzEcHyLEWwI7LSUWrA04WzoK/exec';
       let masterInventory = [];
+      let isLoaded = false;
+
+      // Embedded fallback inventory for iOS devices or restricted networks
+      const fallbackInventory = [
+        { "stock": 1023, "name": "2020 Freightliner Cascadia", "price": "$599 weekly", "miles": "685k Miles", "desc": "DOT ready. Very clean. Super quick 1.25 year term. NO BALLOON PAYMENT!!", "thumb": "https://lh3.googleusercontent.com/d/1CFBw-zGrskGJi9UGDzSx5HoR8HpMGLG6", "gallery": ["https://lh3.googleusercontent.com/d/1CFBw-zGrskGJi9UGDzSx5HoR8HpMGLG6", "https://lh3.googleusercontent.com/d/1CVkhIO64l77yLG-DZOfdLpkjf1Xben5E", "https://lh3.googleusercontent.com/d/1Q9qGgi_MZ9UWDqZYJuE3siL3g7nVoNDn"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201023", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1023" },
+        { "stock": 1041, "name": "2020 Freightliner Cascadia", "price": "$599 weekly", "miles": "602k Miles", "desc": "DOT ready. Very clean. Super quick 1.5 year term. NO BALLOON PAYMENT!!", "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya", "gallery": ["https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201041", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1041" },
+        { "stock": 1056, "name": "2022 Freightliner Cascadia", "price": "$599 weekly", "miles": "463k Miles", "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 12/2027. DOT ready. 2.5 year term. NO BALLOON PAYMENT!", "thumb": "https://lh3.googleusercontent.com/d/1fi8CpUHuoBh16rcSYcNTTbVjhAit6WSy", "gallery": ["https://lh3.googleusercontent.com/d/1fi8CpUHuoBh16rcSYcNTTbVjhAit6WSy", "https://lh3.googleusercontent.com/d/16Lm8pUEgTeC1EJLp7CqURHo1zGc0MXGw", "https://lh3.googleusercontent.com/d/1uyTkveiH68PnKz83dtBZ5cBWiiAHl7lf"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201056", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1056" },
+        { "stock": 1069, "name": "2024 Freightliner Cascadia", "price": "$599 weekly", "miles": "511k Miles", "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 04/2028. DOT ready. 2.5 year term. NO BALLOON PAYMENT!", "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya", "gallery": ["https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201069", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1069" },
+        { "stock": 1074, "name": "2024 Freightliner Cascadia", "price": "$599 weekly", "miles": "517k Miles", "desc": "Remaining Freightliner warranty on powertrain and aftertreatment until 05/2028. DOT ready. 2.5 year term. NO BALLOON PAYMENT!", "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya", "gallery": ["https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201074", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1074" },
+        { "stock": 1082, "name": "2023 Freightliner Cascadia", "price": "$599 weekly", "miles": "449k Miles", "desc": "APU! Remaining Freightliner warranty on powertrain and aftertreatment until 06/2029. DOT ready. 2.5 year term. NO BALLOON PAYMENT!", "thumb": "https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya", "gallery": ["https://lh3.googleusercontent.com/d/1L-E5Eyu7vq4bx99n36IBA_DtbbtcuXya"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201082", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1082" },
+        { "stock": 1025, "name": "2020 Freightliner Cascadia", "price": "$599 weekly", "miles": "711k Miles", "desc": "DOT ready. Very clean. Super quick 39 week term. NO BALLOON PAYMENT!!", "thumb": "https://lh3.googleusercontent.com/d/1bdB13VsKcAUuh_nK40gCdhi1cSAhufYU", "gallery": ["https://lh3.googleusercontent.com/d/1bdB13VsKcAUuh_nK40gCdhi1cSAhufYU", "https://lh3.googleusercontent.com/d/1GKSSPBjpgw0RmUvV6yhQScGoRqwjG4Mr", "https://lh3.googleusercontent.com/d/1WJ0lj8CVrmfnSvJ0Gw2AZVc0Wyhuoj6o"], "sms": "sms:+18654634097?body=I%20am%20interested%20in%20stock%20number%201025", "email": "mailto:recruiting@marblecitylogistics.com?subject=Inquiry about stock number STK-1025" }
+      ];
 
       function formatImageUrl(url) {
         if (!url || typeof url !== 'string') return '';
@@ -89,10 +101,11 @@
       }
 
       function handleInventoryData(data) {
+        isLoaded = true;
         const statusMsg = document.getElementById('status-message');
         
         if (!data || data.length === 0) {
-          statusMsg.innerText = 'No inventory found in spreadsheet.';
+          loadFallback();
           return;
         }
 
@@ -125,16 +138,26 @@
         renderCards(masterInventory);
       }
 
-      // Dynamically inject script tag with iOS cache-busting and mobile compatibility
+      function loadFallback() {
+        if (isLoaded) return;
+        isLoaded = true;
+        masterInventory = fallbackInventory;
+        document.getElementById('status-message').style.display = 'none';
+        renderCards(masterInventory);
+      }
+
       function loadLiveInventory() {
+        // Fallback trigger if request takes over 1.5 seconds or gets blocked on iOS
+        setTimeout(() => {
+          if (!isLoaded) {
+            loadFallback();
+          }
+        }, 1500);
+
         const script = document.createElement('script');
         script.src = webAppUrl + '?callback=handleInventoryData&_t=' + Date.now();
         script.async = true;
-        
-        script.onerror = function() {
-          document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
-        };
-        
+        script.onerror = loadFallback;
         document.head.appendChild(script);
       }
 
