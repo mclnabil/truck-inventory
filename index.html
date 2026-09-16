@@ -11,12 +11,12 @@
       /* Logo & Header Styling */
       .logo-container { text-align: center; margin-bottom: 10px; }
       .logo-container img { max-width: 250px; height: auto; display: inline-block; }
-      h1 { text-align: center; color: #333; margin-bottom: 15px; }
+      h1 { text-align: center; color: #111; margin-bottom: 15px; }
       
       /* Search Controls */
       .search-container { max-width: 600px; margin: 0 auto 25px auto; display: flex; gap: 10px; }
       .search-input { flex: 1; padding: 12px 16px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
-      .search-input:focus { border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.4); }
+      .search-input:focus { border-color: #d32f2f; box-shadow: 0 0 5px rgba(211, 47, 47, 0.4); }
 
       /* Grid & Cards */
       .grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; margin: 0 auto; }
@@ -26,38 +26,41 @@
       .card img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.2s; }
       .img-wrapper:hover img { transform: scale(1.03); }
       
-      /* Eye-Catching Promo Banner Badge */
+      /* Marble City Logistics Branded Badge */
       .promo-banner {
         position: absolute;
         top: 12px;
         left: 0;
-        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        background: linear-gradient(135deg, #111111, #2b2b2b);
         color: #ffffff;
         font-weight: 800;
         font-size: 0.85rem;
         padding: 6px 14px;
         border-top-right-radius: 20px;
         border-bottom-right-radius: 20px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.4);
         z-index: 10;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        border: 1px solid rgba(255,255,255,0.3);
+        border-left: 4px solid #d32f2f;
+        border-top: 1px solid #444;
+        border-right: 1px solid #444;
+        border-bottom: 1px solid #444;
       }
 
-      .gallery-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+      .gallery-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.85); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
 
-      .card h2 { font-size: 1.2rem; margin: 12px 0 6px 0; color: #2c3e50; }
-      .price { font-size: 1.25em; font-weight: bold; color: #2ecc71; margin: 6px 0 2px 0; }
-      .miles { font-size: 0.95rem; font-weight: 600; color: #7f8c8d; margin: 0 0 12px 0; }
+      .card h2 { font-size: 1.2rem; margin: 12px 0 6px 0; color: #111; }
+      .price { font-size: 1.25em; font-weight: bold; color: #d32f2f; margin: 6px 0 2px 0; }
+      .miles { font-size: 0.95rem; font-weight: 600; color: #555; margin: 0 0 12px 0; }
       .desc { color: #555; font-size: 0.95rem; line-height: 1.4; margin-bottom: 15px; }
       
       .buttons { display: flex; gap: 10px; margin-top: auto; }
       .btn { padding: 10px 15px; text-decoration: none; color: white; border-radius: 4px; text-align: center; flex: 1; font-size: 14px; font-weight: bold; border: none; display: inline-block; }
-      .btn-text { background: #3498db; }
-      .btn-text:hover { background: #2980b9; }
-      .btn-email { background: #e74c3c; }
-      .btn-email:hover { background: #c0392b; }
+      .btn-text { background: #d32f2f; }
+      .btn-text:hover { background: #b71c1c; }
+      .btn-email { background: #222222; }
+      .btn-email:hover { background: #000000; }
       
       #status-message { text-align: center; font-size: 1.2em; color: #666; width: 100%; margin-top: 30px; }
 
@@ -114,7 +117,7 @@
         const statusMsg = document.getElementById('status-message');
         
         if (!data || data.length === 0) {
-          statusMsg.innerText = 'No inventory found.';
+          statusMsg.innerText = 'No inventory found in spreadsheet.';
           return;
         }
 
@@ -149,18 +152,15 @@
       }
 
       function loadLiveInventory() {
-        setTimeout(() => {
-          if (!isLoaded) {
-            document.getElementById('status-message').innerText = 'Taking longer than expected. Please refresh if inventory does not load.';
-          }
-        }, 3500);
-
         const script = document.createElement('script');
+        // Cache-busting timestamp so devices do not load stale responses
         script.src = webAppUrl + '?callback=handleInventoryData&_t=' + Date.now();
         script.async = true;
+        
         script.onerror = function() {
           document.getElementById('status-message').innerText = 'Failed to load live inventory. Please refresh.';
         };
+        
         document.head.appendChild(script);
       }
 
@@ -182,7 +182,7 @@
           
           const galleryCount = car.gallery ? car.gallery.length : 1;
           const badgeHtml = galleryCount > 1 ? `<div class="gallery-badge">📷 ${galleryCount} Photos</div>` : '';
-          const bannerHtml = car.banner ? `<div class="promo-banner">🔥 ${car.banner}</div>` : '';
+          const bannerHtml = car.banner ? `<div class="promo-banner">${car.banner}</div>` : '';
 
           card.innerHTML = `
             <div>
